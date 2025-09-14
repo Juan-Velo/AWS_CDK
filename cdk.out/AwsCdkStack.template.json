@@ -1,0 +1,397 @@
+{
+ "Resources": {
+  "ApiStudentsCluster7EA2B570": {
+   "Type": "AWS::ECS::Cluster",
+   "Properties": {
+    "ClusterName": "api-students-cluster-v2",
+    "ClusterSettings": [
+     {
+      "Name": "containerInsights",
+      "Value": "enabled"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsCluster/Resource"
+   }
+  },
+  "ApiStudentsServiceLB2BAE7F86": {
+   "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+   "Properties": {
+    "LoadBalancerAttributes": [
+     {
+      "Key": "deletion_protection.enabled",
+      "Value": "false"
+     }
+    ],
+    "Scheme": "internet-facing",
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "ApiStudentsServiceLBSecurityGroup3DB854FE",
+       "GroupId"
+      ]
+     }
+    ],
+    "Subnets": [
+     "subnet-069673d2543e08524",
+     "subnet-03f60e07f4b47d97d",
+     "subnet-0e0a0485c7af509a4",
+     "subnet-0210927aec2901112",
+     "subnet-06a3aaa9b3892e367",
+     "subnet-0f515a969734ff843"
+    ],
+    "Type": "application"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/LB/Resource"
+   }
+  },
+  "ApiStudentsServiceLBSecurityGroup3DB854FE": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatically created Security Group for ELB AwsCdkStackApiStudentsServiceLB6BB33A8A",
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow from anyone on port 80",
+      "FromPort": 80,
+      "IpProtocol": "tcp",
+      "ToPort": 80
+     }
+    ],
+    "VpcId": "vpc-02afe9f8ae3770db9"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/LB/SecurityGroup/Resource"
+   }
+  },
+  "ApiStudentsServiceLBSecurityGrouptoAwsCdkStackApiStudentsServiceSecurityGroupF078B9BC800029669669": {
+   "Type": "AWS::EC2::SecurityGroupEgress",
+   "Properties": {
+    "Description": "Load balancer to target",
+    "DestinationSecurityGroupId": {
+     "Fn::GetAtt": [
+      "ApiStudentsServiceSecurityGroupD829E9A5",
+      "GroupId"
+     ]
+    },
+    "FromPort": 8000,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "ApiStudentsServiceLBSecurityGroup3DB854FE",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "ToPort": 8000
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/LB/SecurityGroup/to AwsCdkStackApiStudentsServiceSecurityGroupF078B9BC:8000"
+   }
+  },
+  "ApiStudentsServiceLBPublicListenerC62205B0": {
+   "Type": "AWS::ElasticLoadBalancingV2::Listener",
+   "Properties": {
+    "DefaultActions": [
+     {
+      "TargetGroupArn": {
+       "Ref": "ApiStudentsServiceLBPublicListenerECSGroup1AC352F9"
+      },
+      "Type": "forward"
+     }
+    ],
+    "LoadBalancerArn": {
+     "Ref": "ApiStudentsServiceLB2BAE7F86"
+    },
+    "Port": 80,
+    "Protocol": "HTTP"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/LB/PublicListener/Resource"
+   }
+  },
+  "ApiStudentsServiceLBPublicListenerECSGroup1AC352F9": {
+   "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+   "Properties": {
+    "HealthCheckIntervalSeconds": 30,
+    "HealthCheckPath": "/students",
+    "HealthCheckTimeoutSeconds": 5,
+    "HealthyThresholdCount": 2,
+    "Matcher": {
+     "HttpCode": "200-499"
+    },
+    "Port": 80,
+    "Protocol": "HTTP",
+    "TargetGroupAttributes": [
+     {
+      "Key": "stickiness.enabled",
+      "Value": "false"
+     }
+    ],
+    "TargetType": "ip",
+    "UnhealthyThresholdCount": 5,
+    "VpcId": "vpc-02afe9f8ae3770db9"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/LB/PublicListener/ECSGroup/Resource"
+   }
+  },
+  "ApiStudentsServiceTaskDefC57FF8EA": {
+   "Type": "AWS::ECS::TaskDefinition",
+   "Properties": {
+    "ContainerDefinitions": [
+     {
+      "Essential": true,
+      "Image": "juanvelo/api-students:latest",
+      "LogConfiguration": {
+       "LogDriver": "awslogs",
+       "Options": {
+        "awslogs-group": {
+         "Ref": "ApiStudentsServiceTaskDefapistudentsLogGroupB770D6C5"
+        },
+        "awslogs-stream-prefix": "ApiStudentsService",
+        "awslogs-region": "us-east-1"
+       }
+      },
+      "Name": "api-students",
+      "PortMappings": [
+       {
+        "ContainerPort": 8000,
+        "Protocol": "tcp"
+       }
+      ]
+     }
+    ],
+    "Cpu": "256",
+    "ExecutionRoleArn": "arn:aws:iam::045517588521:role/LabRole",
+    "Family": "AwsCdkStackApiStudentsServiceTaskDef75E0C71D",
+    "Memory": "512",
+    "NetworkMode": "awsvpc",
+    "RequiresCompatibilities": [
+     "FARGATE"
+    ],
+    "TaskRoleArn": "arn:aws:iam::045517588521:role/LabRole"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/TaskDef/Resource"
+   }
+  },
+  "ApiStudentsServiceTaskDefapistudentsLogGroupB770D6C5": {
+   "Type": "AWS::Logs::LogGroup",
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/TaskDef/api-students/LogGroup/Resource"
+   }
+  },
+  "ApiStudentsService9160DD76": {
+   "Type": "AWS::ECS::Service",
+   "Properties": {
+    "Cluster": {
+     "Ref": "ApiStudentsCluster7EA2B570"
+    },
+    "DeploymentConfiguration": {
+     "MaximumPercent": 200,
+     "MinimumHealthyPercent": 50
+    },
+    "DesiredCount": 1,
+    "EnableECSManagedTags": false,
+    "HealthCheckGracePeriodSeconds": 60,
+    "LaunchType": "FARGATE",
+    "LoadBalancers": [
+     {
+      "ContainerName": "api-students",
+      "ContainerPort": 8000,
+      "TargetGroupArn": {
+       "Ref": "ApiStudentsServiceLBPublicListenerECSGroup1AC352F9"
+      }
+     }
+    ],
+    "NetworkConfiguration": {
+     "AwsvpcConfiguration": {
+      "AssignPublicIp": "ENABLED",
+      "SecurityGroups": [
+       {
+        "Fn::GetAtt": [
+         "ApiStudentsServiceSecurityGroupD829E9A5",
+         "GroupId"
+        ]
+       }
+      ],
+      "Subnets": [
+       "subnet-069673d2543e08524",
+       "subnet-03f60e07f4b47d97d",
+       "subnet-0e0a0485c7af509a4",
+       "subnet-0210927aec2901112",
+       "subnet-06a3aaa9b3892e367",
+       "subnet-0f515a969734ff843"
+      ]
+     }
+    },
+    "TaskDefinition": {
+     "Ref": "ApiStudentsServiceTaskDefC57FF8EA"
+    }
+   },
+   "DependsOn": [
+    "ApiStudentsServiceLBPublicListenerECSGroup1AC352F9",
+    "ApiStudentsServiceLBPublicListenerC62205B0"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/Service/Service"
+   }
+  },
+  "ApiStudentsServiceSecurityGroupD829E9A5": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "AwsCdkStack/ApiStudentsService/Service/SecurityGroup",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": "vpc-02afe9f8ae3770db9"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/Service/SecurityGroup/Resource"
+   }
+  },
+  "ApiStudentsServiceSecurityGroupfromAwsCdkStackApiStudentsServiceLBSecurityGroupD001C4358000D060A9A9": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "Description": "Load balancer to target",
+    "FromPort": 8000,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "ApiStudentsServiceSecurityGroupD829E9A5",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "ApiStudentsServiceLBSecurityGroup3DB854FE",
+      "GroupId"
+     ]
+    },
+    "ToPort": 8000
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/Service/SecurityGroup/from AwsCdkStackApiStudentsServiceLBSecurityGroupD001C435:8000"
+   }
+  },
+  "ApiStudentsServiceTaskCountTarget29DAC9DF": {
+   "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
+   "Properties": {
+    "MaxCapacity": 3,
+    "MinCapacity": 1,
+    "ResourceId": {
+     "Fn::Join": [
+      "",
+      [
+       "service/",
+       {
+        "Ref": "ApiStudentsCluster7EA2B570"
+       },
+       "/",
+       {
+        "Fn::GetAtt": [
+         "ApiStudentsService9160DD76",
+         "Name"
+        ]
+       }
+      ]
+     ]
+    },
+    "RoleARN": "arn:aws:iam::045517588521:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+    "ScalableDimension": "ecs:service:DesiredCount",
+    "ServiceNamespace": "ecs"
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/Service/TaskCount/Target/Resource"
+   }
+  },
+  "ApiStudentsServiceTaskCountTargetCpuScaling95E85EDB": {
+   "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
+   "Properties": {
+    "PolicyName": "AwsCdkStackApiStudentsServiceTaskCountTargetCpuScalingBC17A936",
+    "PolicyType": "TargetTrackingScaling",
+    "ScalingTargetId": {
+     "Ref": "ApiStudentsServiceTaskCountTarget29DAC9DF"
+    },
+    "TargetTrackingScalingPolicyConfiguration": {
+     "PredefinedMetricSpecification": {
+      "PredefinedMetricType": "ECSServiceAverageCPUUtilization"
+     },
+     "ScaleInCooldown": 60,
+     "ScaleOutCooldown": 60,
+     "TargetValue": 60
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/ApiStudentsService/Service/TaskCount/Target/CpuScaling/Resource"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/7VUTW/bMAz9LdVxUL012ym3Lt2GAN1aNMEuQVAwEutqUShPlJoFhv/7IFlOHLSHXXYwbD+Sjx+P0qSaXH2qPlzAni+V3l5as6naRQC1lQ/ILnqFK/FOyH981hL2/Nii4qqd2cgB/aoVqv/6ATsU0+ypHAUwhH5ObOrnwGIafEQpXhqVXbq1nD1RoZBfwdcQcAm8vcEnQyYYR2/VlaPO3eRsyDXCCuEC/YvpO8yR5V8uFFjY2Jxw5iKFTqLixwZCQE9cXTeNNQoS1a0D/RkskEJ9zirRAgejrAO9yR6G6pdJ1b4d7VfjHsYGOQ4wHJBOzmeND8ZxwBJ8jeGbd7HpZ3P8TT1NqnaBKnoTDhlbtUcFpNDIypsmsRQErHX7a2vvYti4SFpMn8AydrIVoPWcao/MD9GimCbZgeZkDWGP9AIrR4QqcXIhjWR+R5zrXnfZdrmnTLwuzF/GxMlanBLl+v9mPy7kW1lGpZSIskajkb4C+mZewYW5k9bVXLW3rh4U8RiQjip0ZT/qIiKctIYYHCuwhuqqPe1wUnzVCu7XMp1CbkClo4iKhRRcPG/MDolPavtyAZThSOGdHQ7wztAMGlAmHAYE/pwhaWCJGZdu6UFtv2PwRg1DE41Hnc4j6sGQWRpnjTqMbgptONWWusH5UFnIPf0EGwc37u0z56x2+2FSRY6zScj+lWsyVC/6ed3nvIP3Eei6BN3F0MTQyftDeHb0/mN1NakmF7/YmEsfKZgdVg/9+y+NciXkTwUAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "AwsCdkStack/CDKMetadata/Default"
+   }
+  }
+ },
+ "Outputs": {
+  "ApiStudentsServiceLoadBalancerDNSBB1755D4": {
+   "Value": {
+    "Fn::GetAtt": [
+     "ApiStudentsServiceLB2BAE7F86",
+     "DNSName"
+    ]
+   }
+  },
+  "ApiStudentsServiceServiceURL44628D49": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "http://",
+      {
+       "Fn::GetAtt": [
+        "ApiStudentsServiceLB2BAE7F86",
+        "DNSName"
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  "LoadBalancerDNS": {
+   "Value": {
+    "Fn::GetAtt": [
+     "ApiStudentsServiceLB2BAE7F86",
+     "DNSName"
+    ]
+   }
+  },
+  "ServiceName": {
+   "Value": {
+    "Fn::GetAtt": [
+     "ApiStudentsService9160DD76",
+     "Name"
+    ]
+   }
+  },
+  "TargetGroupName": {
+   "Value": {
+    "Fn::GetAtt": [
+     "ApiStudentsServiceLBPublicListenerECSGroup1AC352F9",
+     "TargetGroupName"
+    ]
+   }
+  }
+ }
+}

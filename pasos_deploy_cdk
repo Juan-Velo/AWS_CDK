@@ -1,0 +1,9 @@
+Crear la plantilla de cloudformation yaml/json
+cdk synth
+
+Deployar el stack sin usar cdk bootstrap por usar la cuenta de AWS academy y no tener permiso para crear roles
+cdk deploy --require-approval never
+
+Obtener el URL de la api desde la consola(aparece en la sección de outputs una vez deployada la api)
+
+aws cloudformation delete-stack --stack-name AwsCdkStack
